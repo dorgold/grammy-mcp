@@ -4,16 +4,17 @@ import { Bot } from "grammy";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createServer } from "./server.js";
 
-function getToken(): string {
-  // CLI arg takes precedence: --token <value>
-  const tokenArgIndex = process.argv.indexOf("--token");
-  if (tokenArgIndex !== -1 && process.argv[tokenArgIndex + 1]) {
-    return process.argv[tokenArgIndex + 1];
+function getCliArg(name: string): string | undefined {
+  const index = process.argv.indexOf(`--${name}`);
+  if (index !== -1 && process.argv[index + 1]) {
+    return process.argv[index + 1];
   }
+  return undefined;
+}
 
-  if (process.env.TELEGRAM_BOT_TOKEN) {
-    return process.env.TELEGRAM_BOT_TOKEN;
-  }
+function getToken(): string {
+  const token = getCliArg("token") ?? process.env.TELEGRAM_BOT_TOKEN;
+  if (token) return token;
 
   console.error(
     "Error: Telegram bot token is required.\n" +
@@ -22,14 +23,19 @@ function getToken(): string {
   process.exit(1);
 }
 
+function getChatId(): string | undefined {
+  return getCliArg("chat-id") ?? process.env.TELEGRAM_CHAT_ID;
+}
+
 async function main(): Promise<void> {
   const token = getToken();
+  const defaultChatId = getChatId();
   const bot = new Bot(token);
 
   // Validate the token by calling getMe
   await bot.init();
 
-  const server = createServer(bot.api);
+  const server = createServer(bot.api, { defaultChatId });
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }

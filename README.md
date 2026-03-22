@@ -5,24 +5,25 @@ An [MCP](https://modelcontextprotocol.io) server that exposes [grammY](https://g
 ## Quick Start
 
 ```bash
-npx grammy-mcp --token YOUR_BOT_TOKEN
+npx grammy-mcp --token YOUR_BOT_TOKEN --chat-id YOUR_CHAT_ID
 ```
 
-Or set the environment variable:
+Or set environment variables:
 
 ```bash
 export TELEGRAM_BOT_TOKEN=your_bot_token
+export TELEGRAM_CHAT_ID=your_default_chat_id
 npx grammy-mcp
 ```
 
 ## Configuration
 
-### Token
+| Setting  | CLI argument  | Environment variable   | Required |
+| -------- | ------------- | ---------------------- | -------- |
+| Bot token | `--token`    | `TELEGRAM_BOT_TOKEN`   | Yes      |
+| Default chat ID | `--chat-id` | `TELEGRAM_CHAT_ID` | No       |
 
-Provide your Telegram bot token (from [@BotFather](https://t.me/BotFather)) via:
-
-1. **CLI argument**: `--token <token>` (takes precedence)
-2. **Environment variable**: `TELEGRAM_BOT_TOKEN`
+CLI arguments take precedence over environment variables. When a default chat ID is set, the `chat_id` parameter becomes optional in all tools.
 
 ### Claude Desktop
 
@@ -35,7 +36,8 @@ Add to your Claude Desktop config (`claude_desktop_config.json`):
       "command": "npx",
       "args": ["grammy-mcp"],
       "env": {
-        "TELEGRAM_BOT_TOKEN": "your_bot_token"
+        "TELEGRAM_BOT_TOKEN": "your_bot_token",
+        "TELEGRAM_CHAT_ID": "your_default_chat_id"
       }
     }
   }
@@ -53,7 +55,8 @@ Add to your Cursor MCP settings:
       "command": "npx",
       "args": ["grammy-mcp"],
       "env": {
-        "TELEGRAM_BOT_TOKEN": "your_bot_token"
+        "TELEGRAM_BOT_TOKEN": "your_bot_token",
+        "TELEGRAM_CHAT_ID": "your_default_chat_id"
       }
     }
   }
@@ -68,7 +71,7 @@ Send a text message to a Telegram chat.
 
 | Parameter    | Type   | Required | Description                                      |
 | ------------ | ------ | -------- | ------------------------------------------------ |
-| `chat_id`    | string | Yes      | Target chat ID or @username                      |
+| `chat_id`    | string | No*      | Target chat ID or @username (* required if no default set) |
 | `text`       | string | Yes      | Message text to send                             |
 | `parse_mode` | string | No       | Formatting: `HTML`, `Markdown`, or `MarkdownV2`  |
 

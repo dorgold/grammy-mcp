@@ -1,13 +1,22 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Api } from "grammy";
 import { z } from "zod";
+import type { ServerOptions } from "../server.js";
 
-export function registerSendMessage(server: McpServer, api: Api): void {
+export function registerSendMessage(
+  server: McpServer,
+  api: Api,
+  options: ServerOptions
+): void {
+  const chatIdDesc = options.defaultChatId
+    ? `Target chat ID or @username (defaults to ${options.defaultChatId})`
+    : "The target chat ID or @username";
+
   server.tool(
     "send_message",
     "Send a text message to a Telegram chat",
     {
-      chat_id: z.string().describe("The target chat ID or @username"),
+      chat_id: z.string().optional().describe(chatIdDesc),
       text: z.string().describe("The message text to send"),
       parse_mode: z
         .enum(["HTML", "Markdown", "MarkdownV2"])
@@ -15,8 +24,21 @@ export function registerSendMessage(server: McpServer, api: Api): void {
         .describe("Optional formatting mode for the message"),
     },
     async ({ chat_id, text, parse_mode }) => {
+      const resolvedChatId = chat_id ?? options.defaultChatId;
+      if (!resolvedChatId) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: "Error: chat_id is required. Provide it as a parameter or set a default via --chat-id or TELEGRAM_CHAT_ID.",
+            },
+          ],
+          isError: true,
+        };
+      }
+
       try {
-        const result = await api.sendMessage(chat_id, text, {
+        const result = await api.sendMessage(resolvedChatId, text, {
           parse_mode,
         });
 
